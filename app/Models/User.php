@@ -34,7 +34,19 @@ class User extends Authenticatable
         ];
     }
 
-    public function estadoAsientos()
+    // ============================================
+    // RELACIONES
+    // ============================================
+
+    /**
+     * Un usuario tiene muchas reservas (estados de asientos)
+     */
+    public function reservas()
+    {
+        return $this->hasMany(EstadoAsiento::class);
+    }
+
+        public function estadoAsientos()
     {
         return $this->hasMany(EstadoAsiento::class);
     }
@@ -49,5 +61,4 @@ class User extends Authenticatable
     {
         return $this->is_admin === true;
     }
-
 }
