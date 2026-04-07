@@ -1,0 +1,62 @@
+<?php
+
+namespace Tests\Unit;
+
+use Tests\TestCase;
+use App\Services\LiberarReservasService;
+use App\Models\EstadoAsiento;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+class LiberarReservasServiceTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected LiberarReservasService $service;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->service = new LiberarReservasService();
+    }
+
+    public function test_libera_reservas_expiradas()
+    {
+        EstadoAsiento::factory()->count(3)->create([
+            'estado' => 'bloqueado',
+            'reservado_hasta' => now()->subMinutes(20),
+        ]);
+
+        $liberadas = $this->service->liberarExpiradas();
+
+        $this->assertEquals(3, $liberadas);
+        $this->assertDatabaseCount('estado_asientos', 0);
+    }
+
+    public function test_no_libera_reservas_vendidas()
+    {
+        EstadoAsiento::factory()->vendido()->create();
+
+        $liberadas = $this->service->liberarExpiradas();
+
+        $this->assertEquals(0, $liberadas);
+        $this->assertDatabaseCount('estado_asientos', 1);
+    }
+
+    public function test_libera_reservas_de_usuario_especifico()
+    {
+        $reserva1 = EstadoAsiento::factory()->create([
+            'user_id' => 1,
+            'reservado_hasta' => now()->subMinutes(20),
+        ]);
+        $reserva2 = EstadoAsiento::factory()->create([
+            'user_id' => 2,
+            'reservado_hasta' => now()->subMinutes(20),
+        ]);
+
+        $liberadas = $this->service->liberarPorUsuario(1);
+
+        $this->assertEquals(1, $liberadas);
+        $this->assertDatabaseMissing('estado_asientos', ['id' => $reserva1->id]);
+        $this->assertDatabaseHas('estado_asientos', ['id' => $reserva2->id]);
+    }
+}

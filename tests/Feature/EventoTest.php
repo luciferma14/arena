@@ -30,14 +30,11 @@ class EventoTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'data' => [
-                    'evento' => [
-                        'id' => $evento->id,
-                        'nombre' => $evento->nombre,
-                    ],
+                    'id' => $evento->id,
+                    'nombre' => $evento->nombre,
                 ],
             ]);
     }
-
 
     public function test_admin_puede_crear_evento()
     {
@@ -45,8 +42,7 @@ class EventoTest extends TestCase
 
         $response = $this->actingAs($admin)->postJson('/api/admin/eventos', [
             'nombre' => 'Concierto Rock',
-            'descripcion_corta' => 'Gran concierto',
-            'descripcion_larga' => 'Un gran concierto de rock',
+            'descripcion' => 'Gran concierto',
             'fecha' => '2026-12-31',
             'hora' => '20:00',
         ]);
@@ -63,8 +59,7 @@ class EventoTest extends TestCase
 
         $response = $this->actingAs($user)->postJson('/api/admin/eventos', [
             'nombre' => 'Concierto Rock',
-            'descripcion_corta' => 'Gran concierto',
-            'descripcion_larga' => 'Un gran concierto de rock',
+            'descripcion' => 'Gran concierto',
             'fecha' => '2026-12-31',
             'hora' => '20:00',
         ]);
@@ -79,10 +74,9 @@ class EventoTest extends TestCase
 
         $response = $this->actingAs($admin)->putJson("/api/admin/eventos/{$evento->id}", [
             'nombre' => 'Nuevo Nombre',
-            'descripcion_corta' => $evento->descripcion_corta,
-            'descripcion_larga' => $evento->descripcion_larga,
+            'descripcion' => $evento->descripcion,
             'fecha' => $evento->fecha->format('Y-m-d'),
-            'hora' => '20:00',
+            'hora' => $evento->hora,
         ]);
 
         $response->assertStatus(200);
